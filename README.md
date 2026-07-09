@@ -10,13 +10,34 @@ TI LP-MSPM0C1104 LaunchPad LED blinky, built with arm-none-eabi-gcc + CMake + Ni
 - **TI LP-MSPM0C1104** LaunchPad with onboard XDS110 debugger (USB connected)
 - **MSPM0 SDK** placed at `third_party/mspm0-sdk/` (clone from https://github.com/TexasInstruments/mspm0-sdk)
 
-## Build
+# Quick Start
 
 ```powershell
-$env:PATH += ';C:\Users\YE\AppData\Roaming\Python\Python312\Scripts'
-cmake -B build -G Ninja
-cmake --build build
+# 1. Source environment (once per session, sets cmake/ninja in PATH)
+. C:\Users\YE\.codex\toolchains\setup-mspm0-env.ps1
+
+# 2. Configure + build
+cmake --preset mspm0-gcc
+cmake --build --preset mspm0-gcc
 ```
+
+## Toolchain Architecture
+
+Shared toolchain config lives outside the project, reused by all MSPM0 projects:
+
+```powershell
+#
+# ~/.codex/toolchains/
+#   ├── toolchain-arm-none-eabi-gcc.cmake   # cross-compiler paths
+#   └── setup-mspm0-env.ps1                 # PATH + env vars
+#
+# Project-level (this repo):
+#   ├── CMakePresets.json                   # references shared toolchain
+#   └── CMakeLists.txt                      # project-specific only
+```
+
+To start a new MSPM0 project, copy `CMakePresets.json` and adjust the
+`MSPM0_SDK_DIR` cache variable; the toolchain file is shared automatically.
 
 Output: `build/blinky.elf`, `build/blinky.bin`, `build/blinky.hex`.
 

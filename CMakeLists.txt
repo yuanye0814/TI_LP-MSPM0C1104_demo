@@ -1,25 +1,15 @@
 ﻿cmake_minimum_required(VERSION 3.20)
 
-# ---- Toolchain paths (override with -D on configure) ----
-set(GCC_ARM_TOOLCHAIN
-    "C:/Users/YE/AppData/Local/stm32cube/bundles/gnu-tools-for-stm32/14.3.1+st.2"
-    CACHE PATH "arm-none-eabi-gcc root")
+# ---- Project-specific settings only ----
+# Toolchain (compiler/linker/objcopy paths) is handled by the shared
+# toolchain file referenced in CMakePresets.json:
+#   C:/Users/YE/.codex/toolchains/toolchain-arm-none-eabi-gcc.cmake
+
+project(mspm0c1104_blinky C ASM)
+
 set(MSPM0_SDK_DIR
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/mspm0-sdk"
     CACHE PATH "MSPM0 SDK root")
-
-# ---- Cross compiler (must be set before project()) ----
-set(CMAKE_SYSTEM_NAME      Generic)
-set(CMAKE_SYSTEM_PROCESSOR cortex-m0plus)
-set(CMAKE_C_COMPILER   "${GCC_ARM_TOOLCHAIN}/bin/arm-none-eabi-gcc.exe")
-set(CMAKE_ASM_COMPILER "${GCC_ARM_TOOLCHAIN}/bin/arm-none-eabi-gcc.exe")
-set(CMAKE_OBJCOPY      "${GCC_ARM_TOOLCHAIN}/bin/arm-none-eabi-objcopy.exe")
-set(CMAKE_SIZE         "${GCC_ARM_TOOLCHAIN}/bin/arm-none-eabi-size.exe")
-set(CMAKE_AR           "${GCC_ARM_TOOLCHAIN}/bin/arm-none-eabi-ar.exe")
-set(CMAKE_RANLIB       "${GCC_ARM_TOOLCHAIN}/bin/arm-none-eabi-ranlib.exe")
-set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
-
-project(mspm0c1104_blinky C ASM)
 
 # ---- MCU flags ----
 set(MCU_FLAGS
@@ -28,7 +18,7 @@ set(MCU_FLAGS
     -mthumb
     -mfloat-abi=soft)
 
-# ---- MSPM0 driverlib source files (compile from SDK source, no prebuilt lib) ----
+# ---- MSPM0 driverlib source files (compiled from SDK, skip prebuilt .a) ----
 file(GLOB DRIVERLIB_SRC
     "${MSPM0_SDK_DIR}/source/ti/driverlib/*.c"
     "${MSPM0_SDK_DIR}/source/ti/driverlib/m0p/*.c"
@@ -52,26 +42,20 @@ target_compile_definitions(blinky.elf PRIVATE __MSPM0C1104__)
 
 target_compile_options(blinky.elf PRIVATE
     ${MCU_FLAGS}
-    -O2
-    -std=c99
-    -ffunction-sections
-    -fdata-sections
-    -g
-    -gstrict-dwarf
-    -Wall)
+    -O2 -std=c99
+    -ffunction-sections -fdata-sections
+    -g -gstrict-dwarf -Wall)
 
 target_link_options(blinky.elf PRIVATE
     ${MCU_FLAGS}
     -nostartfiles
     -T${CMAKE_CURRENT_SOURCE_DIR}/ld/mspm0c1104.lds
     -Wl,-Map,${CMAKE_CURRENT_BINARY_DIR}/blinky.map
-    -static
-    -Wl,--gc-sections
+    -static -Wl,--gc-sections
     -L${MSPM0_SDK_DIR}/source
     -L${GCC_ARM_TOOLCHAIN}/arm-none-eabi/lib/thumb/v6-m/nofp
     -lgcc -lc -lm
-    --specs=nano.specs
-    --specs=nosys.specs)
+    --specs=nano.specs --specs=nosys.specs)
 
 # ---- Generate .bin / .hex + size report ----
 add_custom_command(TARGET blinky.elf POST_BUILD

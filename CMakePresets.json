@@ -1,0 +1,23 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "mspm0-gcc",
+      "displayName": "MSPM0 GCC (Ninja)",
+      "description": "arm-none-eabi-gcc + CMake + Ninja, Drivers Live",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "toolchainFile": "C:/Users/YE/.codex/toolchains/toolchain-arm-none-eabi-gcc.cmake",
+      "cacheVariables": {
+        "MSPM0_SDK_DIR": "${sourceDir}/third_party/mspm0-sdk",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "mspm0-gcc",
+      "configurePreset": "mspm0-gcc"
+    }
+  ]
+}
